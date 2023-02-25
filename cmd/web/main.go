@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"goAnsible/handlers"
+	"goAnsible/pkg/handlers"
 	"net/http"
 )
 
