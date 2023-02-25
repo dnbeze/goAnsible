@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// package level variable for template cache
 var tc = make(map[string]*template.Template) // this is creating variable that will hold template cache
 
 //this is a simple template render function replaced below with template cache
@@ -24,7 +25,6 @@ func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
 func RenderTemplate(w http.ResponseWriter, t string) {
 	var tmpl *template.Template
 	var err error
-
 	//check to see if we have the template in our cache which is var tc
 	_, inMap := tc[t] //inMap will try to pull the value that is at key position t from the map tc. Can use inMap as value or bool now. Ignoring index aka key
 	if !inMap {
