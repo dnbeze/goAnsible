@@ -1,19 +1,21 @@
 package render
 
 import (
-	"fmt"
+	"bytes"
+	"goAnsible/pkg/config"
 	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 )
 
 // package level variable for template cache
-var tc = make(map[string]*template.Template) // this is creating variable that will hold template cache
+//var tc = make(map[string]*template.Template) // this is creating variable that will hold template cache
 
 //this is a simple template render function replaced below with template cache
 /*
 func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
-	parsedTemplate, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.html")
+	parsedTemplate, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.html.layout.tmpl")
 	err := parsedTemplate.Execute(w, nil)
 	if err != nil {
 		fmt.Println("error parsing template", err)
@@ -21,46 +23,68 @@ func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
 	}
 }
 */
+var app *config.AppConfig
 
-func RenderTemplate(w http.ResponseWriter, t string) {
-	var tmpl *template.Template
-	var err error
-	//check to see if we have the template in our cache which is var tc
-	_, inMap := tc[t] //inMap will try to pull the value that is at key position t from the map tc. Can use inMap as value or bool now. Ignoring index aka key
-	if !inMap {
-		//need to create the template
-		log.Println("creating template and adding to cache")
-		err = createTemplateCache(t)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		//we have the template in the cache
-		log.Println("using cached template")
+// NewTemplates sets the config for the template package
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string) {
+	// get template cache from app config
+	tc := app.TemplateCache
+	// get requested template from cache
+	t, ok := tc[tmpl]
+	if !ok { //check if html page was found in template cache
+		log.Fatal("could not get template from template cache")
 	}
+	// create buffer for finer grained error checking
+	buf := new(bytes.Buffer)
 
-	tmpl = tc[t] // set var tmpl to the value of tc[t] which is of type template.Template because the map you made when initialized tc
-
-	err = tmpl.Execute(w, nil)
+	err := t.Execute(buf, nil)
 	if err != nil {
 		log.Println(err)
 	}
 
+	// render the template
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
-func createTemplateCache(t string) error {
-	templates := []string{
-		fmt.Sprintf("./templates/%s", t),
-		"./templates/base.html",
-	}
-	//parse the template
-	tmpl, err := template.ParseFiles(templates...)
+func CreateTemplateCache() (map[string]*template.Template, error) {
+	//myCache := make(map[string]*template.Template)
+	myCache := map[string]*template.Template{}
+
+	//get all the files named *.html
+	pages, err := filepath.Glob("./templates/*.html")
 	if err != nil {
-		return err
+		return myCache, err
 	}
 
-	//add template to cache (map)
-	tc[t] = tmpl
+	//range through all files *.html
+	for _, page := range pages { //pages is a slice of strings that is the full path to all files *.html in the templates folder
+		name := filepath.Base(page)                    //set name to the last element of the file path
+		ts, err := template.New(name).ParseFiles(page) // then use name to populate the template name and then parse it which parses the filename aka var name
+		if err != nil {
+			return myCache, err
+		}
 
-	return nil
+		matches, err := filepath.Glob("./templates/*.layout")
+		if err != nil {
+			return myCache, err
+		}
+
+		if len(matches) > 0 {
+			ts, err = ts.ParseGlob("./templates/*.layout")
+			if err != nil {
+				return myCache, err
+			}
+		}
+
+		myCache[name] = ts
+	}
+
+	return myCache, nil
 }
