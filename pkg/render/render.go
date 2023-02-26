@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"fmt"
 	"goAnsible/models"
 	"goAnsible/pkg/config"
 	"html/template"
@@ -75,6 +76,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	//get all the files named *.html
 	pages, err := filepath.Glob("./templates/*.html")
 	if err != nil {
+		fmt.Println("ME")
 		return myCache, err
 	}
 
@@ -83,6 +85,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)                    //set name to the last element of the file path
 		ts, err := template.New(name).ParseFiles(page) // then use name to populate the template name and then parse it which parses the filename aka var name
 		if err != nil {
+			fmt.Printf("Error parsing template file %s\n", page)
 			return myCache, err
 		}
 
