@@ -15,7 +15,7 @@ type Repository struct {
 	App *config.AppConfig
 }
 
-// NewRepo creats a new repository
+// NewRepo creates a new repository
 func NewRepo(a *config.AppConfig) *Repository {
 	return &Repository{
 		App: a,
@@ -28,6 +28,8 @@ func NewHandlers(r *Repository) {
 }
 
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
+	remoteIP := r.RemoteAddr //grab the request remote ip address as string
+	m.App.Session.Put(r.Context(), "remote_ip", remoteIP)
 	render.RenderTemplate(w, "home.html", &models.TemplateData{})
 }
 
@@ -35,6 +37,10 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	//logic
 	stringMap := make(map[string]string)
 	stringMap["test"] = "hello again"
+
+	remoteIP := m.App.Session.GetString(r.Context(), "remote_ip")
+	stringMap["remote_ip"] = remoteIP
+
 	//send data to the template
 	render.RenderTemplate(w, "about.html", &models.TemplateData{
 		StringMap: stringMap,
