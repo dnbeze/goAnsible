@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"goAnsible/models"
 	"goAnsible/pkg/config"
 	"goAnsible/pkg/render"
 	"net/http"
@@ -27,9 +28,15 @@ func NewHandlers(r *Repository) {
 }
 
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "home.html")
+	render.RenderTemplate(w, "home.html", &models.TemplateData{})
 }
 
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "about.html")
+	//logic
+	stringMap := make(map[string]string)
+	stringMap["test"] = "hello again"
+	//send data to the template
+	render.RenderTemplate(w, "about.html", &models.TemplateData{
+		StringMap: stringMap,
+	})
 }

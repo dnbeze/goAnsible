@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"goAnsible/models"
 	"goAnsible/pkg/config"
 	"html/template"
 	"log"
@@ -30,7 +31,12 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+
+	return td
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 
 	var tc map[string]*template.Template
 
@@ -48,7 +54,9 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	// create buffer for finer grained error checking
 	buf := new(bytes.Buffer)
 
-	err := t.Execute(buf, nil)
+	td = AddDefaultData(td)
+
+	err := t.Execute(buf, td)
 	if err != nil {
 		log.Println(err)
 	}
