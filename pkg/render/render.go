@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 )
 
+var functions = template.FuncMap{}
 var app *config.AppConfig
 
 // NewTemplates sets the config for the template package
@@ -64,14 +65,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	fmt.Println(pages)
 	for _, page := range pages {
 		name := filepath.Base(page)
-		fmt.Println(name)
-		x := template.New(name)
-		fmt.Println(x)
-		x, err = x.ParseFiles(page)
-		fmt.Println(x)
-		ts, err := template.New(name).ParseFiles(page)
-		fmt.Println("ts is here")
-		fmt.Println(ts)
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			fmt.Println(err)
 			return myCache, err
