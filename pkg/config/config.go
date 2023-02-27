@@ -12,7 +12,7 @@ type AppConfig struct {
 	TemplateCache map[string]*template.Template
 	InfoLog       *log.Logger
 	InProduction  bool
-	Session       *scs.SessionManager // this is where we are storing the session
+	Session       *scs.SessionManager // this is where we are storing the session so non main package can access
 }
 
 //test

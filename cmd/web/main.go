@@ -21,11 +21,13 @@ func main() {
 	//change this to true when in production
 	app.InProduction = false
 
-	session = scs.New()                            // REMEMER THIS referring to the package level var session use = not :=
+	session = scs.New()                            // Create new session
 	session.Lifetime = 24 * time.Hour              // set lifetime of session to expire 24 hr
 	session.Cookie.Persist = true                  // session will persist a browser being closed - false for fast dying session
 	session.Cookie.SameSite = http.SameSiteLaxMode // TODO what does lax mode mean here probably need to see how secure this is
 	session.Cookie.Secure = app.InProduction       // app.InProduction is now package level variable
+
+	app.Session = session // now able to access session variable stored in app config in non main packages (handlers)
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
