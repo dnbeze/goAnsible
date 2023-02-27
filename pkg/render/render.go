@@ -3,28 +3,14 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"goAnsible/models"
 	"goAnsible/pkg/config"
+	"goAnsible/pkg/models"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
 )
 
-// package level variable for template cache
-//var tc = make(map[string]*template.Template) // this is creating variable that will hold template cache
-
-//this is a simple template render function replaced below with template cache
-/*
-func RenderTemplateTest(w http.ResponseWriter, tmpl string) {
-	parsedTemplate, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.layout.tmpl.tmpl")
-	err := parsedTemplate.Execute(w, nil)
-	if err != nil {
-		fmt.Println("error parsing template", err)
-		return
-	}
-}
-*/
 var app *config.AppConfig
 
 // NewTemplates sets the config for the template package
@@ -37,65 +23,66 @@ func AddDefaultData(td *models.TemplateData) *models.TemplateData {
 	return td
 }
 
+// RenderTemplate renders a template
 func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
-
 	var tc map[string]*template.Template
 
 	if app.UseCache {
-		// get template cache from app config
+		// get the template cache from the app config
 		tc = app.TemplateCache
 	} else {
 		tc, _ = CreateTemplateCache()
 	}
-	// get requested template from cache
+
 	t, ok := tc[tmpl]
-	if !ok { //check if html page was found in template cache
-		log.Fatal("could not get template from template cache")
+	if !ok {
+		log.Fatal("Could not get template from template cache")
 	}
-	// create buffer for finer grained error checking
+
 	buf := new(bytes.Buffer)
 
 	td = AddDefaultData(td)
 
-	err := t.Execute(buf, td)
+	_ = t.Execute(buf, td)
+
+	_, err := buf.WriteTo(w)
 	if err != nil {
-		log.Println(err)
+		fmt.Println("error writing template to browser", err)
 	}
 
-	// render the template
-	_, err = buf.WriteTo(w)
-	if err != nil {
-		log.Println(err)
-	}
 }
 
+// CreateTemplateCache creates a template cache as a map
 func CreateTemplateCache() (map[string]*template.Template, error) {
-	//myCache := make(map[string]*template.Template)
+
 	myCache := map[string]*template.Template{}
 
-	//get all the files named *.html
-	pages, err := filepath.Glob("./templates/*.html")
+	pages, err := filepath.Glob("./templates/*.page.tmpl")
 	if err != nil {
-		fmt.Println("ME")
 		return myCache, err
 	}
-
-	//range through all files *.html
-	for _, page := range pages { //pages is a slice of strings that is the full path to all files *.html in the templates folder
-		name := filepath.Base(page)                    //set name to the last element of the file path
-		ts, err := template.New(name).ParseFiles(page) // then use name to populate the template name and then parse it which parses the filename aka var name
+	fmt.Println(pages)
+	for _, page := range pages {
+		name := filepath.Base(page)
+		fmt.Println(name)
+		x := template.New(name)
+		fmt.Println(x)
+		x, err = x.ParseFiles(page)
+		fmt.Println(x)
+		ts, err := template.New(name).ParseFiles(page)
+		fmt.Println("ts is here")
+		fmt.Println(ts)
 		if err != nil {
-			fmt.Printf("Error parsing template file %s\n", page)
+			fmt.Println(err)
 			return myCache, err
 		}
-
-		matches, err := filepath.Glob("./templates/*.layout")
+		matches, err := filepath.Glob("./templates/*.layout.tmpl")
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout")
+			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
 			if err != nil {
 				return myCache, err
 			}
@@ -104,5 +91,5 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		myCache[name] = ts
 	}
 
-	return myCache, nil
+	return myCache, err
 }

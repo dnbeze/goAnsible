@@ -21,7 +21,7 @@ func main() {
 	//change this to true when in production
 	app.InProduction = false
 
-	session = scs.New()                            //REMEMER THIS referring to the package level var session use = not :=
+	session = scs.New()                            // REMEMER THIS referring to the package level var session use = not :=
 	session.Lifetime = 24 * time.Hour              // set lifetime of session to expire 24 hr
 	session.Cookie.Persist = true                  // session will persist a browser being closed - false for fast dying session
 	session.Cookie.SameSite = http.SameSiteLaxMode // TODO what does lax mode mean here probably need to see how secure this is
@@ -37,6 +37,7 @@ func main() {
 
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
+
 	render.NewTemplates(&app)
 
 	fmt.Println(fmt.Sprintf("Starting application on port %s", portNumber))
