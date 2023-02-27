@@ -14,5 +14,3 @@ type AppConfig struct {
 	InProduction  bool
 	Session       *scs.SessionManager // this is where we are storing the session so non main package can access
 }
-
-//test
