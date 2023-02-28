@@ -45,3 +45,7 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 		StringMap: stringMap,
 	})
 }
+
+func (m *Repository) Command(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "sendCommand.html", &models.TemplateData{})
+}
